@@ -1,21 +1,34 @@
 GET http://localhost:3000
-
 ###
-
 GET http://localhost:3000/routes
 
+###
+GET http://localhost:3000/routes/64e4cbdb28b9fc9ffbf89225
 
 ###
-
-GET http://localhost:3000/routes/1
-
-###
-
 POST http://localhost:3000/routes
 Content-Type: application/json
 
 {
-    "name": "route test 1",
-    "source_id": "1",
-    "destination_id": "2",
+	"name": "route test 2",
+	"source_id": "ChIJN49jUEhMJ5URugsrgKXVPS8",
+	"destination_id": "ChIJVV8eT9TLIJURXIiKCl-VZII"
 }
+###
+PATCH http://localhost:3000/routes/1
+Content-Type: application/json
+
+{
+	"name": ""
+}
+###
+DELETE  http://localhost:3000/routes/1
+
+### Coisas do mapa
+
+### Pegar o place_id
+GET  http://localhost:3000/places?text=Rua D. Pedro II, Santo Amaro da Imperatriz
+
+
+### Pegar direções entre 2 pontos
+GET  http://localhost:3000/directions?originId=ChIJN49jUEhMJ5URugsrgKXVPS8&destinationId=ChIJVV8eT9TLIJURXIiKCl-VZII
