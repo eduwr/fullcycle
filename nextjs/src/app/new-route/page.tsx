@@ -5,12 +5,33 @@ import type {
   FindPlaceFromTextResponseData,
 } from "@googlemaps/google-maps-services-js";
 
-import { FormEvent, useRef } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { useMap } from "../hooks/useMap";
 
 export function NewRoutePage() {
   const mapRef = useRef<HTMLDivElement>(null);
   const map = useMap(mapRef);
+  const [directionsData, setDirectionsData] = useState<
+    DirectionsResponseData & { request: any }
+  >();
+
+  async function createRoute() {
+    const startAddress = directionsData!.routes[0].legs[0].start_address;
+    const endAddress = directionsData!.routes[0].legs[0].end_address;
+    const response = await fetch("http://localhost:3000/routes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: `${startAddress} - ${endAddress}`,
+        source_id: directionsData!.request.origin.place_id,
+        destination_id: directionsData!.request.destination.place_id,
+      }),
+    });
+
+    const route = await response.json();
+  }
 
   async function searchPlaces(e: FormEvent) {
     e.preventDefault();
@@ -46,7 +67,7 @@ export function NewRoutePage() {
     );
     const directionsData: DirectionsResponseData & { request: any } =
       await directionsResponse.json();
-
+    map?.removeAllRoutes();
     await map?.addRouteWithIcons({
       routeId: "1",
       startMarkerOptions: {
@@ -76,6 +97,17 @@ export function NewRoutePage() {
           </div>
           <button type="submit">Pesquisar</button>
         </form>
+        {directionsData && (
+          <ul>
+            <li>Origem {directionsData.routes[0].legs[0].start_address}</li>
+            <li>Destino {directionsData.routes[0].legs[0].end_address}</li>
+            <li>
+              <button type="button" onClick={createRoute}>
+                Criar Rota
+              </button>
+            </li>
+          </ul>
+        )}
       </aside>
       <div
         ref={mapRef}
