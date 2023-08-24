@@ -1,28 +1,17 @@
 "use client";
 
-import type { FindPlaceFromTextResponseData } from "@googlemaps/google-maps-services-js";
-import { Loader } from "@googlemaps/js-api-loader";
-import { FormEvent, useEffect } from "react";
+import type {
+  DirectionsResponseData,
+  FindPlaceFromTextResponseData,
+} from "@googlemaps/google-maps-services-js";
+
+import { FormEvent, useRef } from "react";
+import { useMap } from "../hooks/useMap";
 
 export function NewRoutePage() {
-  useEffect(() => {
-    (async () => {
-      const loader = new Loader({
-        libraries: ["routes", "geometry"],
-        apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,
-      });
+  const mapRef = useRef<HTMLDivElement>(null);
+  const map = useMap(mapRef);
 
-      await Promise.all([
-        loader.importLibrary("routes"),
-        loader.importLibrary("geometry"),
-      ]);
-
-      new google.maps.Map(document.getElementById("map") as HTMLDivElement, {
-        zoom: 15,
-        center: { lat: -23.55, lng: -46.63 },
-      });
-    })();
-  }, []);
   async function searchPlaces(e: FormEvent) {
     e.preventDefault();
     const source = (document.getElementById("source") as HTMLInputElement)
@@ -55,7 +44,21 @@ export function NewRoutePage() {
     const directionsResponse = await fetch(
       `http://localhost:3000/directions?originId=${placeSourceId}&destinationId=${placeDestinationId}`
     );
-    const directionsData = await directionsResponse.json();
+    const directionsData: DirectionsResponseData & { request: any } =
+      await directionsResponse.json();
+
+    await map?.addRouteWithIcons({
+      routeId: "1",
+      startMarkerOptions: {
+        position: directionsData.routes[0].legs[0].start_location,
+      },
+      endMarkerOptions: {
+        position: directionsData.routes[0].legs[0].end_location,
+      },
+      carMarkerOptions: {
+        position: directionsData.routes[0].legs[0].start_location,
+      },
+    });
   }
   return (
     <div style={{ display: "flex", height: "100%", width: "100%" }}>
@@ -75,6 +78,7 @@ export function NewRoutePage() {
         </form>
       </aside>
       <div
+        ref={mapRef}
         id="map"
         style={{
           width: "100%",
